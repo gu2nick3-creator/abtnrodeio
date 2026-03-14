@@ -576,6 +576,16 @@ const EventForm = ({ id, onClose }: { id: number | null; onClose: () => void }) 
         />
       </Field>
 
+      {form.image && (
+        <div className="md:col-span-2">
+          <img
+            src={form.image}
+            alt="Preview do evento"
+            className="w-full max-w-sm h-48 object-cover rounded-lg border border-gold"
+          />
+        </div>
+      )}
+
       <div className="md:col-span-2">
         <Field label="Descrição">
           <TextArea
