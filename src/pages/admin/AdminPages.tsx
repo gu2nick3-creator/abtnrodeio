@@ -557,10 +557,22 @@ const EventForm = ({ id, onClose }: { id: number | null; onClose: () => void }) 
         />
       </Field>
 
-      <Field label="URL da imagem">
-        <TextInput
-          value={form.image}
-          onChange={(e) => setForm({ ...form, image: e.target.value })}
+      <Field label="Imagem do evento">
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="w-full bg-background border border-gold rounded-lg px-4 py-2.5 outline-none focus:ring-1 focus:ring-primary"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setForm((prev) => ({ ...prev, image: String(reader.result) }));
+            };
+            reader.readAsDataURL(file);
+          }}
         />
       </Field>
 
