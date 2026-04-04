@@ -41,6 +41,7 @@ export interface Tropeiro {
   facebook: string;
   state?: string;
   video?: string;
+  image_fit?: "cover" | "contain" | "fill" | "cover-top";
 }
 
 export interface Event {
