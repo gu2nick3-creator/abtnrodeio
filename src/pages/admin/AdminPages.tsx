@@ -115,3 +115,11 @@ const TropeiroForm = ({ id, onClose }: { id: number | null; onClose: () => void 
     </form>
   );
 };
+
+export const AdminTropeiros = () => <AdminCrudPage title="Tropeiros" type="tropeiros" />;
+export const AdminTouros = () => <AdminCrudPage title="Touros" type="touros" />;
+export const AdminEventos = () => <AdminCrudPage title="Eventos" type="eventos" />;
+export const AdminAvaliacoes = () => <AdminCrudPage title="Avaliações" type="avaliacoes" />;
+export const AdminFotos = () => <AdminCrudPage title="Galeria" type="galeria" />;
+export const AdminVideos = () => <AdminCrudPage title="Galeria" type="galeria" />;
+export const AdminUsuarios = () => <AdminCrudPage title="Usuários" type="usuarios" />;
