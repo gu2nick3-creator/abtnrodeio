@@ -42,6 +42,7 @@ export default async function handler(req, res) {
         facebook: item.facebook || '',
         state: item.estado || '',
         video: item.video_url || '',
+        image_fit: item.image_fit || 'cover',
       })),
       bulls: touros.map((item) => ({
         id: item.id,
@@ -62,7 +63,9 @@ export default async function handler(req, res) {
         id: item.id,
         name: item.nome,
         date: item.data_evento ? new Date(item.data_evento).toISOString().slice(0, 10) : '',
-        dateEnd: item.data_fim ? new Date(item.data_fim).toISOString().slice(0, 10) : (item.data_evento ? new Date(item.data_evento).toISOString().slice(0, 10) : ''),
+        dateEnd: item.data_fim
+          ? new Date(item.data_fim).toISOString().slice(0, 10)
+          : (item.data_evento ? new Date(item.data_evento).toISOString().slice(0, 10) : ''),
         location: item.local_evento || '',
         city: item.cidade || '',
         status: item.status || getStatusFromDate(item.data_evento),
