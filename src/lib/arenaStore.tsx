@@ -83,6 +83,7 @@ const toTropeiroPayload = (input: TropeiroInput) => ({
   facebook: input.facebook,
   foto_url: input.image,
   video_url: input.video,
+  image_fit: input.image_fit || "cover",
 });
 
 const toEventPayload = (input: EventInput) => ({
