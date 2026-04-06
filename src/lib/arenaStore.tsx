@@ -1,10 +1,34 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { emptyArenaData, type ArenaData, type AuthSession, type Bull, type Evaluation, type Event, type GalleryItem, type Tropeiro, type TropeiroUser } from "@/data/mockData";
+import {
+  emptyArenaData,
+  type ArenaData,
+  type AuthSession,
+  type Bull,
+  type Evaluation,
+  type Event,
+  type GalleryItem,
+  type Tropeiro,
+  type TropeiroUser,
+} from "@/data/mockData";
 import { api } from "@/lib/api";
 
 const SESSION_KEY = "arena_session_v3";
 
-type BullInput = Omit<Bull, "id" | "history"> & { history?: Bull["history"] };
+type BullInput = Omit<Bull, "id" | "history"> & {
+  history?: Bull["history"];
+  nome?: string;
+  idade?: number;
+  peso?: number;
+  nota?: number;
+  tropeiro_id?: number | null;
+  cidade?: string;
+  eventos?: number;
+  vitorias?: number;
+  foto_url?: string;
+  historico?: string;
+  observacoes?: string;
+};
+
 type TropeiroInput = Omit<Tropeiro, "id" | "bullCount">;
 type EventInput = Omit<Event, "id">;
 type GalleryInput = Omit<GalleryItem, "id">;
@@ -59,17 +83,20 @@ const loadSession = (): AuthSession | null => {
 const ADMIN_CREDENTIALS = { username: "admin@abtn.com", password: "" } as const;
 
 const toBullPayload = (input: BullInput) => ({
-  nome: input.name,
-  idade: input.age,
-  peso: input.weight,
-  nota: input.score,
-  historico: JSON.stringify(input.history ?? []),
-  observacoes: input.company,
-  foto_url: input.image,
-  tropeiro_id: input.tropeiroId,
-  cidade: input.city,
-  eventos: input.events,
-  vitorias: input.wins,
+  nome: input.nome ?? input.name ?? "",
+  idade: Number(input.idade ?? input.age ?? 0),
+  peso: Number(input.peso ?? input.weight ?? 0),
+  nota: Number(input.nota ?? input.score ?? 0),
+  historico:
+    typeof input.historico === "string"
+      ? input.historico
+      : JSON.stringify(input.history ?? []),
+  observacoes: input.observacoes ?? input.company ?? "",
+  foto_url: input.foto_url ?? input.image ?? "",
+  tropeiro_id: input.tropeiro_id ?? input.tropeiroId ?? null,
+  cidade: input.cidade ?? input.city ?? "",
+  eventos: Number(input.eventos ?? input.events ?? 0),
+  vitorias: Number(input.vitorias ?? input.wins ?? 0),
 });
 
 const toTropeiroPayload = (input: TropeiroInput) => ({
@@ -103,7 +130,12 @@ const toGalleryPayload = (data: ArenaData, input: GalleryInput) => ({
   titulo: input.title,
   categoria: input.category,
   url: input.url,
-  touro_id: data.bulls.find((bull) => bull.name === input.bull)?.id ?? null,
+  touro_id:
+    data.bulls.find(
+      (bull) =>
+        (bull as any).name === input.bull ||
+        (bull as any).nome === input.bull
+    )?.id ?? null,
   tropeiro_id: data.tropeiros.find((tropeiro) => tropeiro.name === input.tropeiro)?.id ?? null,
   evento_id: data.events.find((event) => event.name === input.event)?.id ?? null,
   resource_type: input.type === "video" ? "video" : "image",
@@ -147,124 +179,178 @@ export const ArenaStoreProvider = ({ children }: { children: React.ReactNode }) 
     return session;
   };
 
-  const value = useMemo<ArenaStoreContextValue>(() => ({
-    data,
-    session,
-    adminCredentials: ADMIN_CREDENTIALS,
-    isLoading,
-    refreshData,
-    addBull: async (input) => {
-      await api.create(requireSession(), "api/touros", toBullPayload(input));
-      await refreshData();
-    },
-    updateBull: async (id, input) => {
-      await api.update(requireSession(), "api/touros", id, toBullPayload(input));
-      await refreshData();
-    },
-    deleteBull: async (id) => {
-      await api.remove(requireSession(), "api/touros", id);
-      await refreshData();
-    },
-    addTropeiro: async (input) => {
-      const result = await api.create(requireSession(), "api/tropeiros", toTropeiroPayload(input)) as { id?: number };
-      await refreshData();
-      return result.id;
-    },
-    updateTropeiro: async (id, input) => {
-      await api.update(requireSession(), "api/tropeiros", id, toTropeiroPayload(input));
-      await refreshData();
-    },
-    deleteTropeiro: async (id) => {
-      await api.remove(requireSession(), "api/tropeiros", id);
-      await refreshData();
-    },
-    addEvent: async (input) => {
-      await api.create(requireSession(), "api/eventos", toEventPayload(input));
-      await refreshData();
-    },
-    updateEvent: async (id, input) => {
-      await api.update(requireSession(), "api/eventos", id, toEventPayload(input));
-      await refreshData();
-    },
-    deleteEvent: async (id) => {
-      await api.remove(requireSession(), "api/eventos", id);
-      await refreshData();
-    },
-    addGalleryItem: async (input) => {
-      await api.create(requireSession(), "api/midias", toGalleryPayload(data, input));
-      await refreshData();
-    },
-    updateGalleryItem: async (id, input) => {
-      await api.update(requireSession(), "api/midias", id, toGalleryPayload(data, input));
-      await refreshData();
-    },
-    deleteGalleryItem: async (id) => {
-      await api.remove(requireSession(), "api/midias", id);
-      await refreshData();
-    },
-    addUser: async (input) => {
-      await api.create(requireSession(), "api/users", { tropeiro_id: input.tropeiroId, username: input.username, password: input.password, ativo: input.active });
-      await refreshData();
-    },
-    updateUser: async (id, input) => {
-      await api.update(requireSession(), "api/users", id, { tropeiro_id: input.tropeiroId, username: input.username, password: input.password, ativo: input.active });
-      await refreshData();
-    },
-    deleteUser: async (id) => {
-      await api.remove(requireSession(), "api/users", id);
-      await refreshData();
-    },
-    addEvaluation: async (input) => {
-      await api.create(requireSession(), "api/avaliacoes", input);
-      await refreshData();
-    },
-    updateEvaluation: async (id, input) => {
-      await api.update(requireSession(), "api/avaliacoes", id, input);
-      await refreshData();
-    },
-    deleteEvaluation: async (id) => {
-      await api.remove(requireSession(), "api/avaliacoes", id);
-      await refreshData();
-    },
-    loginTropeiro: async (username, password) => {
-      try {
-        const result = await api.loginTropeiro(username, password);
-        setSession({ role: "tropeiro", tropeiroId: result.user.tropeiro_id, username: result.user.username, token: result.token });
+  const value = useMemo<ArenaStoreContextValue>(
+    () => ({
+      data,
+      session,
+      adminCredentials: ADMIN_CREDENTIALS,
+      isLoading,
+      refreshData,
+
+      addBull: async (input) => {
+        await api.create(requireSession(), "api/touros", toBullPayload(input));
         await refreshData();
-        return { ok: true, message: "Login realizado com sucesso." };
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : "Falha no login" };
-      }
-    },
-    loginAdmin: async (username, password) => {
-      try {
-        const result = await api.loginAdmin(username, password);
-        setSession({ role: "admin", username, token: result.token });
+      },
+
+      updateBull: async (id, input) => {
+        await api.update(requireSession(), "api/touros", id, toBullPayload(input));
         await refreshData();
-        return { ok: true, message: "Login administrativo realizado com sucesso." };
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : "Falha no login" };
-      }
-    },
-    updateOwnProfile: async (input) => {
-      try {
-        await api.updateOwnProfile(requireSession(), {
-          ...toTropeiroPayload(input),
+      },
+
+      deleteBull: async (id) => {
+        await api.remove(requireSession(), "api/touros", id);
+        await refreshData();
+      },
+
+      addTropeiro: async (input) => {
+        const result = (await api.create(
+          requireSession(),
+          "api/tropeiros",
+          toTropeiroPayload(input)
+        )) as { id?: number };
+        await refreshData();
+        return result.id;
+      },
+
+      updateTropeiro: async (id, input) => {
+        await api.update(requireSession(), "api/tropeiros", id, toTropeiroPayload(input));
+        await refreshData();
+      },
+
+      deleteTropeiro: async (id) => {
+        await api.remove(requireSession(), "api/tropeiros", id);
+        await refreshData();
+      },
+
+      addEvent: async (input) => {
+        await api.create(requireSession(), "api/eventos", toEventPayload(input));
+        await refreshData();
+      },
+
+      updateEvent: async (id, input) => {
+        await api.update(requireSession(), "api/eventos", id, toEventPayload(input));
+        await refreshData();
+      },
+
+      deleteEvent: async (id) => {
+        await api.remove(requireSession(), "api/eventos", id);
+        await refreshData();
+      },
+
+      addGalleryItem: async (input) => {
+        await api.create(requireSession(), "api/midias", toGalleryPayload(data, input));
+        await refreshData();
+      },
+
+      updateGalleryItem: async (id, input) => {
+        await api.update(requireSession(), "api/midias", id, toGalleryPayload(data, input));
+        await refreshData();
+      },
+
+      deleteGalleryItem: async (id) => {
+        await api.remove(requireSession(), "api/midias", id);
+        await refreshData();
+      },
+
+      addUser: async (input) => {
+        await api.create(requireSession(), "api/users", {
+          tropeiro_id: input.tropeiroId,
           username: input.username,
           password: input.password,
+          ativo: input.active,
         });
         await refreshData();
-        return { ok: true, message: "Perfil atualizado com sucesso." };
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : "Falha ao atualizar perfil" };
-      }
-    },
-    uploadMedia: async (file, tipo, folder) => {
-      const uploaded = await api.upload(requireSession(), file, tipo, folder);
-      return uploaded.url;
-    },
-    logout: () => setSession(null),
-  }), [data, session, isLoading]);
+      },
+
+      updateUser: async (id, input) => {
+        await api.update(requireSession(), "api/users", id, {
+          tropeiro_id: input.tropeiroId,
+          username: input.username,
+          password: input.password,
+          ativo: input.active,
+        });
+        await refreshData();
+      },
+
+      deleteUser: async (id) => {
+        await api.remove(requireSession(), "api/users", id);
+        await refreshData();
+      },
+
+      addEvaluation: async (input) => {
+        await api.create(requireSession(), "api/avaliacoes", input);
+        await refreshData();
+      },
+
+      updateEvaluation: async (id, input) => {
+        await api.update(requireSession(), "api/avaliacoes", id, input);
+        await refreshData();
+      },
+
+      deleteEvaluation: async (id) => {
+        await api.remove(requireSession(), "api/avaliacoes", id);
+        await refreshData();
+      },
+
+      loginTropeiro: async (username, password) => {
+        try {
+          const result = await api.loginTropeiro(username, password);
+          setSession({
+            role: "tropeiro",
+            tropeiroId: result.user.tropeiro_id,
+            username: result.user.username,
+            token: result.token,
+          });
+          await refreshData();
+          return { ok: true, message: "Login realizado com sucesso." };
+        } catch (error) {
+          return {
+            ok: false,
+            message: error instanceof Error ? error.message : "Falha no login",
+          };
+        }
+      },
+
+      loginAdmin: async (username, password) => {
+        try {
+          const result = await api.loginAdmin(username, password);
+          setSession({ role: "admin", username, token: result.token });
+          await refreshData();
+          return { ok: true, message: "Login administrativo realizado com sucesso." };
+        } catch (error) {
+          return {
+            ok: false,
+            message: error instanceof Error ? error.message : "Falha no login",
+          };
+        }
+      },
+
+      updateOwnProfile: async (input) => {
+        try {
+          await api.updateOwnProfile(requireSession(), {
+            ...toTropeiroPayload(input),
+            username: input.username,
+            password: input.password,
+          });
+          await refreshData();
+          return { ok: true, message: "Perfil atualizado com sucesso." };
+        } catch (error) {
+          return {
+            ok: false,
+            message: error instanceof Error ? error.message : "Falha ao atualizar perfil",
+          };
+        }
+      },
+
+      uploadMedia: async (file, tipo, folder) => {
+        const uploaded = await api.upload(requireSession(), file, tipo, folder);
+        return uploaded.url;
+      },
+
+      logout: () => setSession(null),
+    }),
+    [data, session, isLoading]
+  );
 
   return <ArenaStoreContext.Provider value={value}>{children}</ArenaStoreContext.Provider>;
 };
