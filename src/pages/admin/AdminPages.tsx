@@ -423,18 +423,17 @@ const BullForm = ({ id, onClose }: { id: number | null; onClose: () => void }) =
   const current = data.bulls.find((item) => item.id === id);
 
   const [form, setForm] = useState({
-    name: current?.name ?? "",
-    age: current?.age ?? 0,
-    weight: current?.weight ?? 0,
-    score: current?.score ?? 0,
-    tropeiroId: current?.tropeiroId ?? (data.tropeiros[0]?.id ?? 0),
-    company: current?.company ?? "",
-    city: current?.city ?? "",
-    events: current?.events ?? 0,
-    wins: current?.wins ?? 0,
-    image: current?.image ?? "",
-    tropeiro: current?.tropeiro ?? "",
-    history: current?.history ?? ([] as Bull["history"]),
+    nome: (current as any)?.nome ?? current?.name ?? "",
+    idade: (current as any)?.idade ?? current?.age ?? 0,
+    peso: (current as any)?.peso ?? current?.weight ?? 0,
+    nota: (current as any)?.nota ?? current?.score ?? 0,
+    tropeiro_id: (current as any)?.tropeiro_id ?? current?.tropeiroId ?? (data.tropeiros[0]?.id ?? 0),
+    cidade: (current as any)?.cidade ?? current?.city ?? "",
+    eventos: (current as any)?.eventos ?? current?.events ?? 0,
+    vitorias: (current as any)?.vitorias ?? current?.wins ?? 0,
+    foto_url: (current as any)?.foto_url ?? current?.image ?? "",
+    historico: (current as any)?.historico ?? "",
+    observacoes: (current as any)?.observacoes ?? "",
   });
 
   return (
@@ -442,27 +441,51 @@ const BullForm = ({ id, onClose }: { id: number | null; onClose: () => void }) =
       className="grid md:grid-cols-2 gap-4"
       onSubmit={async (e) => {
         e.preventDefault();
-        const tropeiro = data.tropeiros.find((item) => item.id === Number(form.tropeiroId));
-        const payload = {
-          ...form,
-          tropeiroId: Number(form.tropeiroId),
-          tropeiro: tropeiro?.name ?? "",
-          city: form.city || tropeiro?.city || "",
-        };
-        if (payload.image.startsWith("data:")) {
-          payload.image = await uploadMedia(payload.image, "image", "abtn/touros");
+
+        if (!form.nome.trim()) {
+          alert("Preencha o nome do touro");
+          return;
         }
-        if (id) await updateBull(id, payload);
-        else await addBull(payload);
+
+        let fotoUrl = form.foto_url;
+
+        if (fotoUrl && fotoUrl.startsWith("data:")) {
+          fotoUrl = await uploadMedia(fotoUrl, "image", "abtn/touros");
+        }
+
+        const payload = {
+          nome: form.nome.trim(),
+          idade: Number(form.idade) || 0,
+          peso: Number(form.peso) || 0,
+          nota: Number(form.nota) || 0,
+          historico: form.historico || "",
+          observacoes: form.observacoes || "",
+          foto_url: fotoUrl || "",
+          tropeiro_id: Number(form.tropeiro_id) || null,
+          cidade: form.cidade || "",
+          eventos: Number(form.eventos) || 0,
+          vitorias: Number(form.vitorias) || 0,
+        };
+
+        if (id) await updateBull(id, payload as any);
+        else await addBull(payload as any);
+
         onClose();
       }}
     >
       <Field label="Nome">
-        <TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        <TextInput
+          value={form.nome}
+          onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          required
+        />
       </Field>
 
       <Field label="Tropeiro">
-        <Select value={String(form.tropeiroId)} onChange={(e) => setForm({ ...form, tropeiroId: Number(e.target.value) })}>
+        <Select
+          value={String(form.tropeiro_id)}
+          onChange={(e) => setForm({ ...form, tropeiro_id: Number(e.target.value) })}
+        >
           {data.tropeiros.length ? (
             data.tropeiros.map((item) => (
               <option key={item.id} value={item.id}>
@@ -476,40 +499,78 @@ const BullForm = ({ id, onClose }: { id: number | null; onClose: () => void }) =
       </Field>
 
       <Field label="Idade">
-        <TextInput type="number" value={form.age} onChange={(e) => setForm({ ...form, age: Number(e.target.value) })} />
+        <TextInput
+          type="number"
+          value={form.idade}
+          onChange={(e) => setForm({ ...form, idade: Number(e.target.value) })}
+        />
       </Field>
 
       <Field label="Peso">
-        <TextInput type="number" value={form.weight} onChange={(e) => setForm({ ...form, weight: Number(e.target.value) })} />
+        <TextInput
+          type="number"
+          value={form.peso}
+          onChange={(e) => setForm({ ...form, peso: Number(e.target.value) })}
+        />
       </Field>
 
       <Field label="Nota">
-        <TextInput type="number" step="0.1" value={form.score} onChange={(e) => setForm({ ...form, score: Number(e.target.value) })} />
-      </Field>
-
-      <Field label="Companhia">
-        <TextInput value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+        <TextInput
+          type="number"
+          step="0.1"
+          value={form.nota}
+          onChange={(e) => setForm({ ...form, nota: Number(e.target.value) })}
+        />
       </Field>
 
       <Field label="Cidade">
-        <TextInput value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        <TextInput
+          value={form.cidade}
+          onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+        />
       </Field>
 
       <Field label="Eventos">
-        <TextInput type="number" value={form.events} onChange={(e) => setForm({ ...form, events: Number(e.target.value) })} />
+        <TextInput
+          type="number"
+          value={form.eventos}
+          onChange={(e) => setForm({ ...form, eventos: Number(e.target.value) })}
+        />
       </Field>
 
       <Field label="Vitórias">
-        <TextInput type="number" value={form.wins} onChange={(e) => setForm({ ...form, wins: Number(e.target.value) })} />
+        <TextInput
+          type="number"
+          value={form.vitorias}
+          onChange={(e) => setForm({ ...form, vitorias: Number(e.target.value) })}
+        />
       </Field>
 
       <MediaUploadField
         label="Foto do touro"
         accept="image/*"
-        value={form.image}
-        onChange={(value) => setForm({ ...form, image: value })}
+        value={form.foto_url}
+        onChange={(value) => setForm({ ...form, foto_url: value })}
         previewType="image"
       />
+
+      <div className="md:col-span-2">
+        <Field label="Histórico">
+          <TextArea
+            value={form.historico}
+            onChange={(e) => setForm({ ...form, historico: e.target.value })}
+          />
+        </Field>
+      </div>
+
+      <div className="md:col-span-2">
+        <Field label="Observações">
+          <TextArea
+            value={form.observacoes}
+            onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
+          />
+        </Field>
+      </div>
 
       <div className="md:col-span-2 flex justify-end gap-3">
         <button type="button" onClick={onClose} className="border border-gold rounded-lg px-4 py-2">
@@ -662,8 +723,8 @@ const GalleryForm = ({ id, onClose }: { id: number | null; onClose: () => void }
         <Select value={form.bull} onChange={(e) => setForm({ ...form, bull: e.target.value })}>
           <option value="">Selecionar touro</option>
           {data.bulls.map((item) => (
-            <option key={item.id} value={item.name}>
-              {item.name}
+            <option key={item.id} value={(item as any).name ?? (item as any).nome}>
+              {(item as any).name ?? (item as any).nome}
             </option>
           ))}
         </Select>
@@ -757,7 +818,7 @@ const EvaluationForm = ({ id, onClose }: { id: number | null; onClose: () => voi
           <option value="0">Selecionar</option>
           {data.bulls.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name}
+              {(item as any).name ?? (item as any).nome}
             </option>
           ))}
         </Select>
