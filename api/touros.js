@@ -23,17 +23,23 @@ function toText(value, fallback = '') {
 function normalizeTourosBody(body = {}) {
   return {
     nome: toText(body.nome ?? body.name),
-    idade: toNumber(body.idade, 0),
-    peso: toNumber(body.peso, 0),
-    nota: toNumber(body.nota, 0),
-    historico: toText(body.historico),
-    observacoes: toText(body.observacoes ?? body.companhia),
+    idade: toNumber(body.idade ?? body.age, 0),
+    peso: toNumber(body.peso ?? body.weight, 0),
+    nota: toNumber(body.nota ?? body.score, 0),
+    historico: toText(body.historico ?? body.history),
+    observacoes: toText(body.observacoes ?? body.companhia ?? body.company),
     foto_url: toText(body.foto_url ?? body.image ?? body.foto),
-    tropeiro_id: toNullableNumber(body.tropeiro_id ?? body.tropeiro),
-    cidade: toText(body.cidade),
-    eventos: toNumber(body.eventos, 0),
-    vitorias: toNumber(body.vitorias, 0),
+    tropeiro_id: toNullableNumber(body.tropeiro_id ?? body.tropeiro ?? body.tropeiroId),
+    cidade: toText(body.cidade ?? body.city),
+    eventos: toNumber(body.eventos ?? body.events, 0),
+    vitorias: toNumber(body.vitorias ?? body.wins, 0),
   };
+}
+
+async function validateTropeiro(tropeiroId) {
+  if (!tropeiroId) return true;
+  const rows = await query('SELECT id FROM tropeiros WHERE id = ? LIMIT 1', [tropeiroId]);
+  return rows.length > 0;
 }
 
 export default async function handler(req, res) {
@@ -75,8 +81,15 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const data = normalizeTourosBody(req.body);
 
+      console.log('POST /api/touros body normalizado:', data);
+
       if (!data.nome) {
         return badRequest(res, 'Nome é obrigatório');
+      }
+
+      const tropeiroExiste = await validateTropeiro(data.tropeiro_id);
+      if (!tropeiroExiste) {
+        return badRequest(res, 'Tropeiro selecionado não existe');
       }
 
       const result = await query(
@@ -123,8 +136,15 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       const data = normalizeTourosBody(req.body);
 
+      console.log('PUT /api/touros body normalizado:', { id, ...data });
+
       if (!data.nome) {
         return badRequest(res, 'Nome é obrigatório');
+      }
+
+      const tropeiroExiste = await validateTropeiro(data.tropeiro_id);
+      if (!tropeiroExiste) {
+        return badRequest(res, 'Tropeiro selecionado não existe');
       }
 
       const result = await query(
@@ -176,7 +196,7 @@ export default async function handler(req, res) {
       return ok(res, { success: true });
     }
   } catch (error) {
-    console.error('Erro em /api/touros:', error);
+    console.error('Erro real em /api/touros:', error);
     return serverError(res, error);
   }
 }
