@@ -3,7 +3,6 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  Beef,
   CalendarDays,
   Star,
   Image,
@@ -16,10 +15,54 @@ import {
 import bullLogo from "@/assets/abtn-logo.png";
 import { useArenaStore } from "@/lib/arenaStore";
 
+const BullIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M18 20C12 17 8 12 7 7C13 8 19 11 24 16"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M46 20C52 17 56 12 57 7C51 8 45 11 40 16"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M20 24C20 17.3726 25.3726 12 32 12C38.6274 12 44 17.3726 44 24V30C44 40 38 48 32 48C26 48 20 40 20 30V24Z"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M25 50C27 53 29.5 56 32 56C34.5 56 37 53 39 50"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+    <circle cx="27" cy="28" r="2.5" fill="currentColor" />
+    <circle cx="37" cy="28" r="2.5" fill="currentColor" />
+    <path
+      d="M28 37C29.5 35.5 34.5 35.5 36 37"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 const menuItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { label: "Tropeiros", path: "/admin/tropeiros", icon: Users },
-  { label: "Touros", path: "/admin/touros", icon: Beef },
+  { label: "Touros", path: "/admin/touros", icon: BullIcon },
   { label: "Eventos", path: "/admin/eventos", icon: CalendarDays },
   { label: "Avaliações", path: "/admin/avaliacoes", icon: Star },
   { label: "Fotos", path: "/admin/fotos", icon: Image },
