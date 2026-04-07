@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  Shield,
+  Beef,
   CalendarDays,
   Star,
   Image,
@@ -19,7 +19,7 @@ import { useArenaStore } from "@/lib/arenaStore";
 const menuItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { label: "Tropeiros", path: "/admin/tropeiros", icon: Users },
-  { label: "Touros", path: "/admin/touros", icon: Shield },
+  { label: "Touros", path: "/admin/touros", icon: Beef },
   { label: "Eventos", path: "/admin/eventos", icon: CalendarDays },
   { label: "Avaliações", path: "/admin/avaliacoes", icon: Star },
   { label: "Fotos", path: "/admin/fotos", icon: Image },
